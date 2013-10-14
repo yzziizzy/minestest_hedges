@@ -1,6 +1,8 @@
 minestest_hedges
 ================
 
+!!! ***this mod is not done. it does not work now. *** !!!
+
 Growing hedges for minetest.
 
 
