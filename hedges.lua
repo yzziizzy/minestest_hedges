@@ -19,6 +19,39 @@ hedges.register_leaves = function(name, leafnode, leaftex)
 			}
 		},
 	})
+	
+	minetest.register_node("hedges:"..name.."_leaves_top", {
+		description = name.." Leaves",
+		drawtype = "allfaces_optional",
+		tiles = { leaftex },
+		paramtype = "light",
+		groups = {snappy=3, flammable=2, leaves=1, hedges_leaves=1,not_in_creatve_inventory=1},
+		sounds = default.node_sound_leaves_defaults(),
+		drawtype = "nodebox",
+		node_box = {
+			type = "fixed",
+			fixed = {
+				{-0.3, -0.5, -0.5, 0.3, 0.3, 0.5},
+				{-0.5, -0.5, -0.3, 0.5, 0.3, 0.3},
+				{-0.3, -0.5, -0.3, 0.3, 0.5, 0.3},
+			},
+		},
+		selection_box = {
+			type = "fixed",
+			fixed = {
+				{-0.5, -0.5, -0.5, 0.5, 0.5, 0.5},
+			},
+		},
+		
+		drop = {
+			max_items = 1,
+			items = {
+				{items = {"hedges:"..name.."_sapling"}, rarity = 200 },
+				{items = {leafnode} }
+			}
+		},
+	})
+
 
 
 end
@@ -224,14 +257,14 @@ minetest.register_abm({
 			
 
 			local height = 1
-			while minetest.get_node(pos).name == "hedges:"..nn.."_leaves" and height < 3 do
+			while (minetest.get_node(pos).name == "hedges:"..nn.."_leaves" or minetest.get_node(pos).name == "hedges:"..nn.."_leaves_top")  and height < 3 do
 				height = height+1
 				pos.y = pos.y+1
 			end
 
 			if height == 3 then
 				if minetest.get_node(pos).name == "air" then
-					minetest.set_node(pos, {name="hedges:"..nn.."_leaves"})
+					minetest.set_node(pos, {name="hedges:"..nn.."_leaves_top"})
 				end
 			elseif height < 3 then
 				if minetest.get_node(pos).name == "air" then
