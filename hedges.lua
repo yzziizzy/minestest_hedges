@@ -1,7 +1,6 @@
 
 
 
-
 hedges.register_leaves = function(name, leafnode, leaftex)
 	
 	minetest.register_node("hedges:"..name.."_leaves", {
@@ -152,9 +151,46 @@ hedges.can_spread = function(pos, x,z, name)
 	local p2 = hedges.node_in_dir(p1, x,z, name)
 	if p2 == nil then return false end
 	
-	pos.x = pos.x - x
-	
 	return true
+end
+
+
+hedges.try_spread(pos, x,z, rootname)
+	pos.x = pos.x + x
+	pos.z = pos.z + z
+	
+	local ns = {}
+	
+--	pos.y = pos.y - 1 -- one node down
+--	ns[1] = minetest.get_node(pos).name
+	
+--	pos.y = pos.y + 1 -- level
+---	ns[2] = minetest.get_node(pos).name
+	
+--	pos.y = pos.y + 1 -- one node up
+--	ns[3] = minetest.get_node(pos).name
+	
+--	pos.y = pos.y + 1 -- two nodes down
+--	ns[4] = minetest.get_node(pos).name
+	
+	pos.y = pos.y - 1
+	for i in 1..3 do
+		local dirt = minetest.get_node(pos).name
+			
+	end
+	
+	if n == "air" then 
+		return pos 
+	end
+	
+	pos.y = pos.y + 1
+	local n = minetest.get_node(pos).name
+	if n == name then return pos end
+	
+	pos.y = pos.y - 2
+	local n = minetest.get_node(pos).name
+	if n == name then return pos end
+
 end
 
 
