@@ -95,15 +95,10 @@ end
 
 
 
-hedges.register_hedge("defaultleaves", "default:leaves", "default_leaves.png", 4)
-hedges.register_hedge("pineneedles", "snow:needles", "snow_needles.png", 4)
-
-
-
 
 minetest.register_abm({
 	nodenames = {"group:hedges_sapling"},
-	interval = 20,
+	interval = 5,
 	chance = 1,
 	action = function(pos, node)
 		pos.y = pos.y-1
@@ -125,21 +120,39 @@ minetest.register_abm({
 	end,
 })
 
+
+local printpos = function(p,s)
+	print("pos: "..p.x..","..p.y..","..p.z.." "..s)
+end
+
+local cp = function(p)
+	return {x=p.x, y=p.y, z=p.z}
+end
+	
 hedges.node_in_dir = function(pos, x,z, name)
 	
 	pos.x = pos.x + x
 	pos.z = pos.z + z
 	
 	local n = minetest.get_node(pos).name
-	if n == name then return pos end
+	if n == name then
+		return cp(pos)
+	
+	end
 	
 	pos.y = pos.y + 1
-	local n = minetest.get_node(pos).name
-	if n == name then return pos end
+	n = minetest.get_node(pos).name
+	if n == name then
+		return cp(pos)
+	
+	end
 	
 	pos.y = pos.y - 2
-	local n = minetest.get_node(pos).name
-	if n == name then return pos end
+	n = minetest.get_node(pos).name
+	if n == name then 
+		return cp(pos)
+	end
+
 	
 	return nil
 end
@@ -147,59 +160,52 @@ end
 hedges.can_spread = function(pos, x,z, name) 
 	local p1 = hedges.node_in_dir(pos, x,z, name)
 	if p1 == nil then return false end
-	
+
 	local p2 = hedges.node_in_dir(p1, x,z, name)
 	if p2 == nil then return false end
-	
+
 	return true
 end
 
 
-hedges.try_spread(pos, x,z, rootname)
+hedges.try_spread = function(pos, x,z, rootname)
 	pos.x = pos.x + x
 	pos.z = pos.z + z
 	
 	local ns = {}
 	
---	pos.y = pos.y - 1 -- one node down
---	ns[1] = minetest.get_node(pos).name
+	pos.y = pos.y - 2 
 	
---	pos.y = pos.y + 1 -- level
----	ns[2] = minetest.get_node(pos).name
-	
---	pos.y = pos.y + 1 -- one node up
---	ns[3] = minetest.get_node(pos).name
-	
---	pos.y = pos.y + 1 -- two nodes down
---	ns[4] = minetest.get_node(pos).name
-	
-	pos.y = pos.y - 1
-	for i in 1..3 do
+	for i = 1, 3 do
 		local dirt = minetest.get_node(pos).name
+		local air = minetest.get_node({x=pos.x, y=pos.y+1, z=pos.z}).name
+		
+		if air == "air" and
+			(dirt == "default:dirt" 
+			or dirt == "default:dirt_with_grass" 
+			or dirt == "default:sand"
+			or dirt == "default:desert_sand") then
 			
+			minetest.set_node({x=pos.x, y=pos.y+1, z=pos.z}, rootname)
+		end
+		
+		pos.y = pos.y + 1
 	end
-	
-	if n == "air" then 
-		return pos 
-	end
-	
-	pos.y = pos.y + 1
-	local n = minetest.get_node(pos).name
-	if n == name then return pos end
-	
-	pos.y = pos.y - 2
-	local n = minetest.get_node(pos).name
-	if n == name then return pos end
 
 end
 
 
 minetest.register_abm({
 	nodenames = {"group:hedges_root"},
-	interval = 10,
+	interval = 5,
 	chance = 1,
 	action = function(pos, node)
-		local op = pos
+		local op = {
+			x=pos.x,
+			y=pos.y,
+			z=pos.z
+		}
+		local myname = minetest.get_node(op).name
 		pos.y = pos.y-1
 		local name = minetest.get_node(pos).name
 		if name == "default:dirt" 
@@ -216,13 +222,13 @@ minetest.register_abm({
 			local nn = meta:get_string("hedgename")
 			pos.y = pos.y+1
 			
-			print("name: "..nn)
+
 			local height = 1
 			while minetest.get_node(pos).name == "hedges:"..nn.."_leaves" and height < 3 do
 				height = height+1
 				pos.y = pos.y+1
 			end
-			print(height)
+
 			if height == 3 then
 				if minetest.get_node(pos).name == "air" then
 					minetest.set_node(pos, {name="hedges:"..nn.."_leaves"})
@@ -234,31 +240,35 @@ minetest.register_abm({
 			end
 			
 			-- spread
-			if hedges.can_spread(op, 1,0, name) then
-				minetest.set_node({x=op.x+1, y=op.y, z=op.z}, {name="hedges:"..nn.."_sapling"})
-			elseif hedges.can_spread(op, -1,0, name) then
+			if hedges.can_spread(cp(op), 1,0, myname) then
+				hedges.try_spread(cp(op), -1,0, {name="hedges:"..nn.."_sapling"})
+			elseif hedges.can_spread(cp(op), -1,0, myname) then
+				hedges.try_spread(cp(op), 1,0, {name="hedges:"..nn.."_sapling"})
+			end
 			
+			if hedges.can_spread(cp(op), 0,1, myname) then
+				hedges.try_spread(cp(op), 0,-1, {name="hedges:"..nn.."_sapling"})
+			elseif hedges.can_spread(cp(op), 0,-1, myname) then
+				hedges.try_spread(cp(op), 0,1, {name="hedges:"..nn.."_sapling"})
+			end
+
 		end
 	end
 })
 
 
--- for i in ipairs(moretrees.treelist) do
--- 	minetest.register_node("moretrees:"..treename.."_leaves", {
--- 		description = treedesc.." Leaves",
--- 		drawtype = "allfaces_optional",
--- 		tiles = { "moretrees_"..treename.."_leaves.png" },
--- 		paramtype = "light",
--- 		groups = {snappy=3, flammable=2, leaves=1, moretrees_leaves=1},
--- 		sounds = default.node_sound_leaves_defaults(),
--- 
--- 		drop = {
--- 			max_items = 1,
--- 			items = {
--- 				{items = {"moretrees:"..treename.."_sapling"}, rarity = 100 },
--- 				{items = {"moretrees:"..treename.."_leaves"} }
--- 			}
--- 		},
--- 	})
--- 	
--- end
+for i in ipairs(moretrees.treelist) do
+	local treename = moretrees.treelist[i][1]
+	hedges.register_hedge(treename, "moretrees:"..treename.."_leaves", "moretrees_"..treename.."_leaves.png" , 4)
+	
+end
+
+
+
+
+hedges.register_hedge("defaultleaves", "default:leaves", "default_leaves.png", 4)
+hedges.register_hedge("bananaleaves", "farming:banana_leaves", "farming_banana_leaves.png", 4)
+hedges.register_hedge("pineneedles", "snow:needles", "snow_needles.png", 4)
+hedges.register_hedge("poisonivy", "poisonivy:poisonivy_climbing", "poisonivy_climbing.png", 4)
+
+
