@@ -2,7 +2,7 @@
 
 
 hedges.register_leaves = function(name, leafnode, leaftex)
-	
+
 	minetest.register_node("hedges:"..name.."_leaves", {
 		description = name.." Leaves",
 		drawtype = "allfaces_optional",
@@ -112,7 +112,7 @@ end
 
 
 
-hedges.register_hedge = function(name, leafnode, leaftex, maxheight)
+hedges.register_hedge = function(name, leafnode, leaftex, sapling, maxheight)
 	
 	--register the sapling
 	hedges.register_sapling(name, maxheight)
@@ -122,6 +122,16 @@ hedges.register_hedge = function(name, leafnode, leaftex, maxheight)
 	
 	-- register the leaves
 	hedges.register_leaves(name, leafnode, leaftex)
+	
+	
+	minetest.register_craft({
+		output = "hedges:"..name.."_sapling 3",
+		recipe = {
+			{leafnode, leafnode, leafnode},
+			{leafnode, leafnode, leafnode},
+			{sapling, sapling, sapling},
+		}
+	})
 	
 
 end
@@ -292,16 +302,16 @@ minetest.register_abm({
 
 for i in ipairs(moretrees.treelist) do
 	local treename = moretrees.treelist[i][1]
-	hedges.register_hedge(treename, "moretrees:"..treename.."_leaves", "moretrees_"..treename.."_leaves.png" , 4)
+	hedges.register_hedge(treename, "moretrees:"..treename.."_leaves", "moretrees_"..treename.."_leaves.png" , "moretrees:"..treename.."_sapling", 4)
 	
 end
 
 
 
 
-hedges.register_hedge("defaultleaves", "default:leaves", "default_leaves.png", 4)
-hedges.register_hedge("bananaleaves", "farming:banana_leaves", "farming_banana_leaves.png", 4)
-hedges.register_hedge("pineneedles", "snow:needles", "snow_needles.png", 4)
-hedges.register_hedge("poisonivy", "poisonivy:poisonivy_climbing", "poisonivy_climbing.png", 4)
+hedges.register_hedge("defaultleaves", "default:leaves", "default_leaves.png", "default:sapling", 4)
+hedges.register_hedge("bananaleaves", "farming:banana_leaves", "farming_banana_leaves.png", "default:sapling", 4)
+hedges.register_hedge("pineneedles", "snow:needles", "snow_needles.png", "default:sapling", 4)
+hedges.register_hedge("poisonivy", "poisonivy:poisonivy_climbing", "poisonivy_climbing.png", "poisonivy:sproutling", 4)
 
 
